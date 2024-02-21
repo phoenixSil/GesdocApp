@@ -1,10 +1,7 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Gesd.Data.Repositories;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Gesd.Features.Contrats.Repositories;
 
 namespace Gesd.Data
 {
@@ -12,6 +9,7 @@ namespace Gesd.Data
     {
         public static IServiceCollection AddDataConfiguration(this IServiceCollection services, IConfiguration configuration)
         {
+            services.AddScoped(typeof(IGenericRepository<>),typeof(GenericRepository<>));
             return services;
         }
     }
