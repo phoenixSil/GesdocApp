@@ -6,4 +6,14 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Gesd.Application\Gesd.Application.csproj" />
+    <ProjectReference Include="..\Gesd.Data\Gesd.Data.csproj" />
+    <ProjectReference Include="..\Gesd.Features\Gesd.Features.csproj" />
+  </ItemGroup>
+
 </Project>
