@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Gesd.Application.Services.Fichiers;
+using Gesd.Features.Contrats.Services.Fichiers;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -12,6 +14,7 @@ namespace Gesd.Application
     {
         public static IServiceCollection AddApplicationServiceConfiguration(this IServiceCollection services, IConfiguration configuration)
         {
+            services.AddScoped<IFichierService, FichierService>();
             return services;
         }
     }
