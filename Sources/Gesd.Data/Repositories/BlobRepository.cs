@@ -1,27 +1,29 @@
 ﻿using Azure.Storage.Blobs;
+
 using Gesd.Data.Settings;
 using Gesd.Features.Contrats.Repositories;
+
 using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Gesd.Data.Repositories
 {
     public class BlobRepository : IBlobRepository
     {
+        private BlobServiceClient BlobServiceClient { get; }
+        private BlobContainerClient BlobContainerClient { get; }
+
         private readonly FileSettings _fichierSetting;
 
         public BlobRepository(FileSettings fichierSetting)
         {
             _fichierSetting = fichierSetting;
+            BlobServiceClient = new BlobServiceClient(_fichierSetting.ChaineDeConnectionBlob);
+            BlobContainerClient = BlobServiceClient.GetBlobContainerClient(_fichierSetting.BlobContainerName);
         }
+
         public async Task<(string fileName, string filePath)> Add(IFormFile file)
         {
-            
+
             if (_fichierSetting.Environment == ToolsNeeds.LOCAL)
             {
                 return await saveFileInLocalStorage(file).ConfigureAwait(false);
@@ -33,21 +35,25 @@ namespace Gesd.Data.Repositories
             }
         }
 
-        public bool Delete(string filePath)
+        public async Task<bool> Delete(string filePath)
         {
-            if (File.Exists(filePath))
+            try
             {
-                try
+                if (_fichierSetting.Environment != ToolsNeeds.LOCAL)
                 {
-                    File.Delete(filePath);
-                    return true;
+                    return await SupprimerUnFichierDansLeBlob(filePath);
                 }
-                catch (Exception)
+                else
                 {
-                    return false;
+                    return SupprimerUnFichierDansLeDossierLocal(filePath);
                 }
             }
-            return false;
+            catch (Exception ex)
+            {
+                // Gérez les exceptions ici
+                Console.WriteLine($"Une erreur s'est produite lors de la suppression du blob : {ex.Message}");
+                return false;
+            }
         }
 
 
@@ -55,27 +61,22 @@ namespace Gesd.Data.Repositories
 
         private async Task<(string fileName, string filePath)> saveFileInBlobStorage(IFormFile file)
         {
-            var blobServiceClient = new BlobServiceClient(_fichierSetting.ChaineDeConnectionBlob);
-            var blobContainerClient = blobServiceClient.GetBlobContainerClient(_fichierSetting.BlobContainerName);
-
             string fileName = Path.GetFileName(file.FileName);
-            var blobClient = blobContainerClient.GetBlobClient(fileName);
+            var blobClient = BlobContainerClient.GetBlobClient(fileName);
 
             if (await blobClient.ExistsAsync())
             {
-                using (var memoryStream = new MemoryStream())
+                await using (var memoryStream = new MemoryStream())
                 {
                     await blobClient.DownloadToAsync(memoryStream);
                     memoryStream.Position = 0;
 
-                    using (var newMemoryStream = new MemoryStream())
-                    {
-                        await file.CopyToAsync(newMemoryStream);
-                        newMemoryStream.Position = 0;
+                    await using var newMemoryStream = new MemoryStream();
+                    await file.CopyToAsync(newMemoryStream);
+                    newMemoryStream.Position = 0;
 
-                        if (memoryStream.Length == newMemoryStream.Length && memoryStream.ToArray().SequenceEqual(newMemoryStream.ToArray()))
-                            return (fileName, blobClient.Uri.ToString());
-                    }
+                    if (memoryStream.Length == newMemoryStream.Length && memoryStream.ToArray().SequenceEqual(newMemoryStream.ToArray()))
+                        return (fileName, blobClient.Uri.ToString());
                 }
 
                 int suffix = 1;
@@ -85,12 +86,12 @@ namespace Gesd.Data.Repositories
                 do
                 {
                     fileName = $"{fileNameWithoutExtension}_{suffix}{fileExtension}";
-                    blobClient = blobContainerClient.GetBlobClient(fileName);
+                    blobClient = BlobContainerClient.GetBlobClient(fileName);
                     suffix++;
                 } while (await blobClient.ExistsAsync());
             }
 
-            using (var fileStream = file.OpenReadStream())
+            await using (var fileStream = file.OpenReadStream())
             {
                 await blobClient.UploadAsync(fileStream, true);
             }
@@ -123,6 +124,38 @@ namespace Gesd.Data.Repositories
             return (fileName, filePath);
         }
 
-        #endregion
+        private bool SupprimerUnFichierDansLeDossierLocal(string filePath)
+        {
+            if (File.Exists(filePath))
+            {
+                try
+                {
+                    File.Delete(filePath);
+                    return true;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            }
+            return false;
+        }
+
+        private async Task<bool> SupprimerUnFichierDansLeBlob(string filePath)
+        {
+            // Obtenez une référence à un blob existant
+            var blobClient = BlobContainerClient.GetBlobClient(_fichierSetting.BlobContainerName);
+
+            // Supprimez le blob
+            await blobClient.DeleteIfExistsAsync();
+            return true;
+        }
+
+        public Task<Entite.File> Get()
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion PRIVATE FUNCTION
     }
 }

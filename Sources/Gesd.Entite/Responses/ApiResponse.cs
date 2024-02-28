@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Net;
 
 namespace Gesd.Entite.Responses
 {
-    public class ApiResponse<T> : RequestResponse where T: class
+    public class ApiResponse<T> : RequestResponse 
     {
         public T Data { get; set; }
 
@@ -20,24 +16,49 @@ namespace Gesd.Entite.Responses
         {
         }
 
-        public static ApiResponse<T> IS_Success(T data, string message = "Success", int status = 200)
+        public static ApiResponse<T> CreateNotFoundResponse(string message)
         {
-            return new ApiResponse<T>(status, true, message, null, data);
+            return new ApiResponse<T>
+            {
+                StatusCode = (int)HttpStatusCode.NotFound,
+                Data = default,
+                Success = true,
+                Message = message
+            };
         }
 
-        public static ApiResponse<T> IS_NotFound(string message = "Not found", int status = 404)
+        public static ApiResponse<T> CreateSuccessResponse(T data, string message = "Opération terminée avec succès !!")
         {
-            return new ApiResponse<T>(status, false, message, null, null);
+            return new ApiResponse<T>
+            {
+                StatusCode = (int)HttpStatusCode.OK,
+                Data = data,
+                Success = true,
+                Message = message
+            };
         }
 
-        public static ApiResponse<T> IS_BadRequest(string message = "Bad request", int status = 400, List<string> errors = null)
+        public static ApiResponse<T> CreateErrorResponse(Exception ex, string message)
         {
-            return new ApiResponse<T>(status, false, message, errors, null);
+            return new ApiResponse<T>
+            {
+                StatusCode = (int)HttpStatusCode.InternalServerError,
+                Data = default,
+                Success = false,
+                Message = message,
+                Errors = new List<string> { ex.Message }
+            };
         }
 
-        public static ApiResponse<T> IS_ServerError(string message = "Internal server error", int status = 500, List<string> errors = null)
+        public static RequestResponse CreateErrorResponse(HttpStatusCode statusCode, string message, List<string>? listError)
         {
-            return new ApiResponse<T>(status, false, message, errors, null);
+            return new ApiResponse<T>
+            {
+                StatusCode = (int)statusCode,
+                Success = false,
+                Message = message,
+                Errors = listError
+            };
         }
     }
 }

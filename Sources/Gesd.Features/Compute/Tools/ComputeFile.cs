@@ -1,12 +1,10 @@
 ﻿using Gesd.Entite;
 using Gesd.Features.Dtos.Fichiers;
+
 using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Gesd.Features.Compute.Tools
 {
@@ -55,7 +53,7 @@ namespace Gesd.Features.Compute.Tools
             var efile = new EncryptedUrlFile
             {
                 FileId = blobdataResponse.Id,
-                EncryptedUrl  = url
+                EncryptedUrl = url
             };
 
             return efile;

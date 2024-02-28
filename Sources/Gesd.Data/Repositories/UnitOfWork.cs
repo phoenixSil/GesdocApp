@@ -1,12 +1,8 @@
 ﻿using Gesd.Data.Context;
 using Gesd.Data.Settings;
 using Gesd.Features.Contrats.Repositories;
+
 using Microsoft.EntityFrameworkCore.Storage;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Gesd.Data.Repositories
 {

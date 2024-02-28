@@ -22,7 +22,7 @@ namespace Gesd.Data
             var fichierSettings = configuration.GetSection(nameof(FileSettings)).Get<FileSettings>();
             services.AddSingleton(fichierSettings);
 
-            services.AddScoped(typeof(IGenericRepository<>),typeof(GenericRepository<>));
+            services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IFileRepository, FileRepository>();
             services.AddScoped<IEncryptedFileRepository, EncryptedFileRepository>();

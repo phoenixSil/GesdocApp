@@ -1,18 +1,14 @@
 ﻿using Gesd.Entite;
+
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
+
 using File = Gesd.Entite.File;
 
 namespace Gesd.Data.Context
 {
-    public class GesdContext: DbContext
+    public class GesdContext : DbContext
     {
-        public GesdContext(DbContextOptions<GesdContext> options): base(options) { }
+        public GesdContext(DbContextOptions<GesdContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
